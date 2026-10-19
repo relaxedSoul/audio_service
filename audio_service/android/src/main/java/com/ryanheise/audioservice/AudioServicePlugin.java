@@ -60,9 +60,14 @@ import android.util.Log;
  */
 public class AudioServicePlugin implements FlutterPlugin, ActivityAware {
     private static String flutterEngineId = "audio_service_engine";
-    /** Must be called BEFORE any FlutterEngine is created. e.g. in Application class. */
+    private static boolean isFlutterEngineProvided = false;
+    /**
+     * Must be called BEFORE any FlutterEngine is created. e.g. in Application class.
+     * The engine with this id is owned by the app, so the plugin never destroys it.
+     */
     public static void setFlutterEngineId(String id) {
         flutterEngineId = id;
+        isFlutterEngineProvided = true;
     }
     public static String getFlutterEngineId() {
         return flutterEngineId;
@@ -114,6 +119,9 @@ public class AudioServicePlugin implements FlutterPlugin, ActivityAware {
     }
 
     public static synchronized void disposeFlutterEngine() {
+        if (isFlutterEngineProvided) {
+            return;
+        }
         for (ClientInterface clientInterface : clientInterfaces) {
             if (clientInterface.activity != null) {
                 // Don't destroy the engine if a new activity started and
